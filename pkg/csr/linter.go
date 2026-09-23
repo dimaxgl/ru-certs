@@ -102,20 +102,20 @@ func LintCSR(raw []byte) (*LintReport, error) {
 // FormatSummary returns formatted diagnostic text
 func (r *LintReport) FormatSummary() string {
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf("Subject: %s\n", r.Subject))
-	b.WriteString(fmt.Sprintf("SANs: %s\n", strings.Join(r.SANs, ", ")))
-	b.WriteString(fmt.Sprintf("Signature Algorithm: %s\n", r.Signature))
-	b.WriteString(fmt.Sprintf("Valid: %t\n", r.IsValid))
+	fmt.Fprintf(&b, "Subject: %s\n", r.Subject)
+	fmt.Fprintf(&b, "SANs: %s\n", strings.Join(r.SANs, ", "))
+	fmt.Fprintf(&b, "Signature Algorithm: %s\n", r.Signature)
+	fmt.Fprintf(&b, "Valid: %t\n", r.IsValid)
 	if len(r.Errors) > 0 {
 		b.WriteString("\nErrors:\n")
 		for _, e := range r.Errors {
-			b.WriteString(fmt.Sprintf("  - [FAIL] %s\n", e))
+			fmt.Fprintf(&b, "  - [FAIL] %s\n", e)
 		}
 	}
 	if len(r.Warnings) > 0 {
 		b.WriteString("\nWarnings:\n")
 		for _, w := range r.Warnings {
-			b.WriteString(fmt.Sprintf("  - [WARN] %s\n", w))
+			fmt.Fprintf(&b, "  - [WARN] %s\n", w)
 		}
 	}
 	return b.String()
