@@ -1,0 +1,29 @@
+# Binaries
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test artifacts and coverage
+coverage.out
+*.test
+/tmp/
+_bmad-output/test-artifacts/
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Binary docs and archives
+*.pdf
+*.docx
+*.doc
+*.rar
+*.zip

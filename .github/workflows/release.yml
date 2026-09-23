@@ -1,0 +1,87 @@
+name: Release & Binary Packaging
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Release Multi-Platform Binaries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            suffix: linux-amd64
+          - goos: linux
+            goarch: arm64
+            suffix: linux-arm64
+          - goos: darwin
+            goarch: amd64
+            suffix: darwin-amd64
+          - goos: darwin
+            goarch: arm64
+            suffix: darwin-arm64
+          - goos: windows
+            goarch: amd64
+            suffix: windows-amd64.exe
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Build Binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          mkdir -p dist
+          BIN_NAME="ru-certs-${{ matrix.suffix }}"
+          go build -ldflags="-s -w -X 'github.com/dimaxgl/ru-certs/internal/cli.Version=${{ github.ref_name }}'" -o "dist/${BIN_NAME}" ./cmd/ru-certs
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ru-certs-${{ matrix.suffix }}
+          path: dist/*
+
+  create-github-release:
+    name: Create GitHub Release
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all built binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: Generate Checksums & Prepare Assets
+        run: |
+          mkdir -p final-dist
+          find release-artifacts -type f -exec mv {} final-dist/ \;
+          cd final-dist
+          sha256sum * > SHA256SUMS.txt
+          ls -la
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: final-dist/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false
