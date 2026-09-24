@@ -244,6 +244,36 @@ func BuildGOSTCSR(cfg *CSRConfig, key *GOSTPrivateKey) (*GenerateResult, error) 
 	// 3. Prepare Extensions
 	var extraExtensions []pkix.Extension
 
+	// SAN extension
+	if len(dnsSANs) > 0 || len(ipSANs) > 0 {
+		var rawValues []asn1.RawValue
+		for _, name := range dnsSANs {
+			rawValues = append(rawValues, asn1.RawValue{
+				Class:      asn1.ClassContextSpecific,
+				Tag:        2, // dNSName
+				IsCompound: false,
+				Bytes:      []byte(name),
+			})
+		}
+		for _, ip := range ipSANs {
+			rawValues = append(rawValues, asn1.RawValue{
+				Class:      asn1.ClassContextSpecific,
+				Tag:        7, // iPAddress
+				IsCompound: false,
+				Bytes:      ip,
+			})
+		}
+		sanBytes, err := asn1.Marshal(rawValues)
+		if err != nil {
+			return nil, fmt.Errorf("marshal SAN failed: %w", err)
+		}
+		extraExtensions = append(extraExtensions, pkix.Extension{
+			Id:       OIDExtensionSubjectAltName,
+			Critical: false,
+			Value:    sanBytes,
+		})
+	}
+
 	// Key Usage
 	kuBits := asn1.BitString{Bytes: []byte{0xA8}, BitLength: 5}
 	kuBytes, err := asn1.Marshal(kuBits)

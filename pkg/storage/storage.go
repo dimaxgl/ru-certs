@@ -3,7 +3,6 @@ package storage
 import (
 	"crypto"
 	"crypto/ecdsa"
-	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -162,8 +161,8 @@ func (s *Storage) LoadOrGenerateAccountKey(email string) (crypto.Signer, error) 
 		}
 	}
 
-	// Generate new ECDSA P-256 key
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	// Generate new RSA 2048 key by default for maximum compatibility (required by Russian NUC ACME)
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return nil, err
 	}

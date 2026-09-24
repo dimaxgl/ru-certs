@@ -335,7 +335,8 @@ func BuildCSR(cfg *CSRConfig) (*GenerateResult, error) {
 
 func generateKey(keyType string) (crypto.Signer, []byte, error) {
 	keyType = strings.ToLower(strings.TrimSpace(keyType))
-	if keyType == "" || keyType == "rsa2048" {
+	switch keyType {
+	case "", "rsa2048":
 		priv, err := rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to generate RSA 2048 key: %w", err)
@@ -346,7 +347,7 @@ func generateKey(keyType string) (crypto.Signer, []byte, error) {
 			Bytes: der,
 		})
 		return priv, pemBytes, nil
-	} else if keyType == "rsa4096" {
+	case "rsa4096":
 		priv, err := rsa.GenerateKey(rand.Reader, 4096)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to generate RSA 4096 key: %w", err)
@@ -357,7 +358,7 @@ func generateKey(keyType string) (crypto.Signer, []byte, error) {
 			Bytes: der,
 		})
 		return priv, pemBytes, nil
-	} else if keyType == "ecdsa" || keyType == "ecdsa-p256" {
+	case "ecdsa", "ecdsa-p256":
 		priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to generate ECDSA key: %w", err)
@@ -371,6 +372,7 @@ func generateKey(keyType string) (crypto.Signer, []byte, error) {
 			Bytes: der,
 		})
 		return priv, pemBytes, nil
+	default:
+		return nil, nil, fmt.Errorf("unsupported key type %q (use rsa2048, rsa4096, ecdsa-p256)", keyType)
 	}
-	return nil, nil, fmt.Errorf("unsupported key type %q (use rsa2048, rsa4096, ecdsa-p256)", keyType)
 }

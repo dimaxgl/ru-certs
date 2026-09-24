@@ -121,6 +121,11 @@ func TestCLICSR_ProfilesAndFlags(t *testing.T) {
 
 	t.Run("Invalid CSR config returns error", func(t *testing.T) {
 		cmd := NewRootCmd()
+		var out bytes.Buffer
+		cmd.SetOut(&out)
+		cmd.SetErr(&out)
+		cmd.SilenceErrors = true
+		cmd.SilenceUsage = true
 		cmd.SetArgs([]string{
 			"csr",
 			"--profile", "ov-yl",
